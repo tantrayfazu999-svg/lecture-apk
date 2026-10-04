@@ -162,13 +162,49 @@
         tx.objectStore('files').delete(key);
       } catch (e) {}
     }
+const CLOUD_DATABASE_URL = 'https://raw.githubusercontent.com/tantrayfazu999-svg/lecture-apk/main/lectures.json';
 
-    let subjects = JSON.parse(localStorage.getItem('hub_subjects_v3')) || ['History', 'Economics', 'Geography', 'Polity'];
-    let lectures = JSON.parse(localStorage.getItem('hub_lectures_v3')) || [];
-    let playbackTimes = JSON.parse(localStorage.getItem('hub_playback_times')) || {};
-    let recentWatchIds = JSON.parse(localStorage.getItem('hub_recently_watched')) || [];
-    let currentSubject = 'Recently Watched';
+let subjects = JSON.parse(localStorage.getItem('hub_subjects_v3')) || [
+  "Bridge Course", "Ancient History", "Medieval History", "Modern History",
+  "Post Independence", "World History", "Art and Culture", "Geography",
+  "Environment and Ecology", "Indian Economy", "Indian Polity", "Governance",
+  "Society, Social Issues, Social Justice", "International Relations",
+  "Internal Security", "Disaster Management", "Science and Technology",
+  "Ethics, Integrity and Aptitude", "Essay", "Starter Kit"
+];
+let lectures = JSON.parse(localStorage.getItem('hub_lectures_v3')) || [];
+let playbackTimes = JSON.parse(localStorage.getItem('hub_playback_times')) || {};
+let recentWatchIds = JSON.parse(localStorage.getItem('hub_recently_watched')) || [];
+let currentSubject = 'Recently Watched';
 
+// Automatically fetch from your GitHub cloud whenever the app opens
+window.addEventListener('DOMContentLoaded', () => {
+  autoFetchCloud();
+});
+
+async function autoFetchCloud() {
+  try {
+    const res = await fetch(CLOUD_DATABASE_URL + '?nocache=' + Date.now());
+    const data = await res.json();
+    if (data.subjects && data.subjects.length > 0) {
+      subjects = data.subjects;
+    }
+    if (data.lectures && data.lectures.length > 0) {
+      data.lectures.forEach(rem => {
+        if (!lectures.some(loc => loc.id === rem.id)) {
+          lectures.push(rem);
+        }
+      });
+    }
+    localStorage.setItem('hub_subjects_v3', JSON.stringify(subjects));
+    localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
+    renderTabs();
+    renderLectures();
+  } catch (err) {
+    console.log('Offline or using cached database.');
+  }
+}
+    
     function renderTabs() {
       const bar = document.getElementById('tabsBar');
       bar.innerHTML = '';

@@ -1,0 +1,14 @@
+{
+  "name": "lecture-apk",
+  "version": "1.0.0",
+  "description": "Offline Lecture Hub Android App",
+  "main": "index.html",
+  "scripts": {},
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}

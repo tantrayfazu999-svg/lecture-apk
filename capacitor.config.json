@@ -1,6 +1,6 @@
 {
   "appId": "com.lecturehub.apk",
   "appName": "Lecture Hub",
-  "webDir": ".",
+  "webDir": "www",
   "bundledWebRuntime": false
 }

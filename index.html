@@ -384,31 +384,77 @@ async function autoFetchCloud() {
       renderLectures();
     }
 
-    function openYouTubeDownloader(ytUrl) {
-      const target = 'https://ssyoutube.com/en189/' + ytUrl.replace(/https?:\/\//, '');
-      window.open(target, '_blank');
-    }
-
+        // --- Universal Offline Downloader Engine ---
     async function downloadLecture(id, url) {
       const btn = document.getElementById('dl_btn_' + id);
-      if (btn) btn.innerText = 'Downloading...';
+      if (btn) btn.innerText = '⏳ Downloading...';
 
-      try {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        await storeBlob(id + '_video', blob);
+      // 1. If it's already an offline blob in phone memory, save file directly
+      const localBlob = await fetchBlob(id + '_video');
+      if (localBlob) {
+        triggerNativeFileDownload(localBlob, `Lecture_${id}.mp4`);
+        if (btn) btn.innerText = '✅ Saved to Files';
+        return;
+      }
 
-        const item = lectures.find(l => l.id === id);
-        if (item) item.isDownloaded = true;
-        localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
-        renderLectures();
-      } catch (err) {
-        alert('Opening downloader in browser...');
-        window.open(url, '_system');
-        if (btn) btn.innerText = '⬇️ Download';
+      // 2. If it's a direct web link, fetch and save to device
+      if (url && !url.includes('youtube.com') && !url.includes('youtu.be')) {
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          await storeBlob(id + '_video', blob);
+
+          const item = lectures.find(l => l.id === id);
+          if (item) item.isDownloaded = true;
+          localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
+          renderLectures();
+          triggerNativeFileDownload(blob, `Lecture_${id}.mp4`);
+          alert('Lecture downloaded and saved for offline viewing!');
+        } catch (err) {
+          window.open(url, '_system');
+          if (btn) btn.innerText = '⬇️ Download';
+        }
+        return;
+      }
+
+      // 3. For YouTube lectures, send directly to stream downloader
+      if (btn) btn.innerText = '⬇️ Download';
+      openYouTubeDownloader(url);
+    }
+
+    // Direct stream grabber for YouTube lectures to save MP4 offline
+    function openYouTubeDownloader(ytUrl) {
+      if (!ytUrl) {
+        alert('No link available to download.');
+        return;
+      }
+      
+      const match = ytUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      const videoId = match ? match[1] : '';
+
+      if (videoId) {
+        const downloadPortal = `https://y2mate.nu/en/youtube-to-mp4/${videoId}`;
+        window.open(downloadPortal, '_blank');
+      } else {
+        window.open(ytUrl, '_blank');
       }
     }
 
+    // Trigger Android Native File Download
+    function triggerNativeFileDownload(blob, fileName) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 2000);
+    }
+    
     async function freeStorageOnly(id) {
       if (confirm('Delete offline file to free memory? (The lecture card will remain saved)')) {
         await removeBlob(id + '_video');

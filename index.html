@@ -7,12 +7,13 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0f172a; color: #f8fafc; padding-bottom: 70px; -webkit-tap-highlight-color: transparent; }
-    header { background: #1e293b; padding: 18px 20px; text-align: center; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 100; }
+    header { background: #1e293b; padding: 16px 20px; text-align: center; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 100; }
     header h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
 
     .tabs-bar { display: flex; align-items: center; background: #1e293b; padding: 10px; gap: 8px; overflow-x: auto; border-bottom: 1px solid #334155; }
     .tab-btn { background: #334155; color: #94a3b8; border: none; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .tab-btn.active { background: #0284c7; color: white; }
+    .tab-btn.recent-tab { background: #7c3aed; color: white; }
     .add-sec-btn { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
     .container { max-width: 650px; margin: 0 auto; padding: 16px; }
@@ -28,28 +29,36 @@
     .btn-submit { background: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
 
     .lecture-card { background: #1e293b; border-radius: 12px; border: 1px solid #334155; margin-bottom: 18px; overflow: hidden; position: relative; }
+    
+    /* Video Box & Fullscreen Styling */
     .video-wrapper { position: relative; width: 100%; height: 220px; background: black; display: flex; align-items: center; justify-content: center; }
     .video-wrapper video, .video-wrapper iframe { width: 100%; height: 100%; border: none; }
     
-    /* Touch Lock Overlay */
-    .touch-lock-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.1); z-index: 50; }
-    .touch-lock-overlay.locked { display: block; }
-    .unlock-btn-badge { position: absolute; top: 12px; right: 12px; background: rgba(220, 38, 38, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fca5a5; z-index: 60; cursor: pointer; }
+    /* Fullscreen Touch Shield / Lock Overlay */
+    .touch-lock-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.01); z-index: 999; }
+    .touch-lock-overlay.locked { display: block; pointer-events: all; }
+    .unlock-btn-badge { position: absolute; top: 20px; right: 20px; background: rgba(220, 38, 38, 0.9); color: white; padding: 8px 16px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; border: 2px solid #fca5a5; z-index: 1000; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
 
-    .video-toolbar { display: flex; justify-content: flex-end; gap: 8px; padding: 6px 12px; background: #0f172a; border-bottom: 1px solid #334155; }
-    .tool-btn { background: #334155; border: none; color: #e2e8f0; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-    .tool-btn:active { background: #475569; }
+    .video-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #0f172a; border-bottom: 1px solid #334155; }
+    .tool-btn { background: #334155; border: none; color: #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .tool-btn.fullscreen-btn { background: #0284c7; color: white; }
+    .tool-btn:active { opacity: 0.8; }
 
     .lec-body { padding: 14px; }
     .lec-body h3 { font-size: 1rem; margin-bottom: 6px; line-height: 1.35; }
-    .lec-body p { font-size: 0.8rem; color: #94a3b8; margin-bottom: 12px; }
+    .lec-body p { font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; }
+
+    /* Resume progress indicator */
+    .progress-bar-wrap { width: 100%; height: 4px; background: #334155; border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: #38bdf8; width: 0%; }
+
     .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-left: 6px; }
     .badge-offline { background: #065f46; color: #34d399; }
     .badge-yt { background: #7f1d1d; color: #f87171; }
     .badge-online { background: #1e3a8a; color: #60a5fa; }
 
     .lec-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-pill { padding: 8px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; border: none; cursor: pointer; color: white; text-decoration: none; }
+    .btn-pill { padding: 8px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; border: none; cursor: pointer; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
     .btn-edit { background: #0284c7; }
     .btn-dl { background: #10b981; }
     .btn-free-storage { background: #d97706; }
@@ -96,7 +105,7 @@
 
       <div class="form-group">
         <label>🔗 Option 2: Paste YouTube / MP4 Link</label>
-        <input type="text" id="videoUrl" placeholder="https://youtu.be/... or https://domain.com/video.mp4" />
+        <input type="text" id="videoUrl" placeholder="https://youtu.be/... or direct video link" />
       </div>
 
       <div class="form-group" style="margin-top: 18px; border-top: 1px dashed #334155; padding-top: 14px;">
@@ -154,13 +163,24 @@
       } catch (e) {}
     }
 
-    let subjects = JSON.parse(localStorage.getItem('hub_subjects_v2')) || ['History', 'Economics', 'Geography', 'Polity'];
-    let lectures = JSON.parse(localStorage.getItem('hub_lectures_v2')) || [];
-    let currentSubject = subjects[0];
+    let subjects = JSON.parse(localStorage.getItem('hub_subjects_v3')) || ['History', 'Economics', 'Geography', 'Polity'];
+    let lectures = JSON.parse(localStorage.getItem('hub_lectures_v3')) || [];
+    let playbackTimes = JSON.parse(localStorage.getItem('hub_playback_times')) || {};
+    let recentWatchIds = JSON.parse(localStorage.getItem('hub_recently_watched')) || [];
+    let currentSubject = 'Recently Watched';
 
     function renderTabs() {
       const bar = document.getElementById('tabsBar');
       bar.innerHTML = '';
+
+      // Recently Watched Tab First
+      const rBtn = document.createElement('button');
+      rBtn.className = 'tab-btn recent-tab ' + (currentSubject === 'Recently Watched' ? 'active' : '');
+      rBtn.innerText = '🕒 Recently Watched';
+      rBtn.onclick = () => { currentSubject = 'Recently Watched'; renderTabs(); renderLectures(); };
+      bar.appendChild(rBtn);
+
+      // Subject Tabs
       subjects.forEach(s => {
         const b = document.createElement('button');
         b.className = 'tab-btn ' + (s === currentSubject ? 'active' : '');
@@ -183,14 +203,14 @@
         opt.innerText = s;
         sel.appendChild(opt);
       });
-      sel.value = currentSubject;
+      if (subjects.includes(currentSubject)) sel.value = currentSubject;
     }
 
     function addSubject() {
       const name = prompt('Enter new subject name:');
       if (name && !subjects.includes(name.trim())) {
         subjects.push(name.trim());
-        localStorage.setItem('hub_subjects_v2', JSON.stringify(subjects));
+        localStorage.setItem('hub_subjects_v3', JSON.stringify(subjects));
         currentSubject = name.trim();
         renderTabs();
         renderLectures();
@@ -240,13 +260,13 @@
           lectures.push({ id, subject: sub, title, duration: dur, type: 'direct_stream', isDownloaded: false, url: videoUrl, ytId: null, hasPdf });
         }
       } else {
-        alert('Please choose a gallery video or paste a link');
+        alert('Please choose a gallery video or paste a video link');
         btn.innerText = 'Save to Hub';
         btn.disabled = false;
         return;
       }
 
-      localStorage.setItem('hub_lectures_v2', JSON.stringify(lectures));
+      localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
       document.getElementById('lecTitle').value = '';
       document.getElementById('videoFile').value = '';
       document.getElementById('videoUrl').value = '';
@@ -260,7 +280,57 @@
       renderLectures();
     }
 
-    // --- Feature 1: Edit Title & Duration ---
+    // --- Record Watch Progress & Recently Watched ---
+    function recordWatch(id, currentTime, duration) {
+      if (!recentWatchIds.includes(id)) {
+        recentWatchIds.unshift(id);
+      } else {
+        recentWatchIds = recentWatchIds.filter(x => x !== id);
+        recentWatchIds.unshift(id);
+      }
+      if (recentWatchIds.length > 20) recentWatchIds.pop();
+      localStorage.setItem('hub_recently_watched', JSON.stringify(recentWatchIds));
+
+      if (currentTime && duration) {
+        playbackTimes[id] = { time: Math.floor(currentTime), total: Math.floor(duration) };
+        localStorage.setItem('hub_playback_times', JSON.stringify(playbackTimes));
+      }
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // --- Fullscreen Landscape + Lock Screen Integration ---
+    function enterFullscreenLandscape(wrapperId, overlayId) {
+      const wrap = document.getElementById(wrapperId);
+      if (!wrap) return;
+
+      if (!document.fullscreenElement) {
+        if (wrap.requestFullscreen) {
+          wrap.requestFullscreen();
+        } else if (wrap.webkitRequestFullscreen) {
+          wrap.webkitRequestFullscreen();
+        }
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+      }
+    }
+
+    function toggleLock(overlayId) {
+      const overlay = document.getElementById(overlayId);
+      if (!overlay) return;
+      overlay.classList.toggle('locked');
+    }
+
     function editLecture(id) {
       const item = lectures.find(l => l.id === id);
       if (!item) return;
@@ -274,40 +344,15 @@
       item.title = finalTitle;
       if (newDur !== null && newDur.trim()) item.duration = newDur.trim();
 
-      localStorage.setItem('hub_lectures_v2', JSON.stringify(lectures));
+      localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
       renderLectures();
     }
 
-    // --- Feature 2: Rotate / Landscape Fullscreen ---
-    function rotateVideo(wrapperId) {
-      const el = document.getElementById(wrapperId);
-      if (!el) return;
-
-      if (!document.fullscreenElement) {
-        if (el.requestFullscreen) {
-          el.requestFullscreen();
-        } else if (el.webkitRequestFullscreen) {
-          el.webkitRequestFullscreen();
-        }
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(() => {});
-        }
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-        if (screen.orientation && screen.orientation.unlock) {
-          screen.orientation.unlock();
-        }
-      }
+    function openYouTubeDownloader(ytUrl) {
+      const target = 'https://ssyoutube.com/en189/' + ytUrl.replace(/https?:\/\//, '');
+      window.open(target, '_blank');
     }
 
-    // --- Feature 3: Touch Screen Lock ---
-    function toggleLock(overlayId) {
-      const overlay = document.getElementById(overlayId);
-      if (!overlay) return;
-      overlay.classList.toggle('locked');
-    }
-
-    // --- Feature 4: Download for Offline & Free Storage ---
     async function downloadLecture(id, url) {
       const btn = document.getElementById('dl_btn_' + id);
       if (btn) btn.innerText = 'Downloading...';
@@ -319,36 +364,38 @@
 
         const item = lectures.find(l => l.id === id);
         if (item) item.isDownloaded = true;
-        localStorage.setItem('hub_lectures_v2', JSON.stringify(lectures));
+        localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
         renderLectures();
       } catch (err) {
-        alert('Could not download this stream link for offline use. Ensure direct MP4 link allows downloads.');
-        if (btn) btn.innerText = 'Download for Offline';
+        alert('Opening downloader in browser...');
+        window.open(url, '_system');
+        if (btn) btn.innerText = '⬇️ Download';
       }
     }
 
-    // Removes only the heavy video file from storage, keeping the lecture card intact
     async function freeStorageOnly(id) {
-      if (confirm('Delete the offline video file to free up storage space? (The lecture card will remain saved)')) {
+      if (confirm('Delete offline file to free memory? (The lecture card will remain saved)')) {
         await removeBlob(id + '_video');
         const item = lectures.find(l => l.id === id);
         if (item) {
           item.isDownloaded = false;
-          // If it was originally uploaded directly from files, leave card marked as un-cached
           if (item.type === 'file_offline') item.type = 'file_cleared';
         }
-        localStorage.setItem('hub_lectures_v2', JSON.stringify(lectures));
+        localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
         renderLectures();
       }
     }
 
-    // Permanently removes the entire lecture from the hub
     async function deleteFullLecture(id) {
-      if (confirm('Permanently delete this entire lecture and all attached files?')) {
+      if (confirm('Permanently delete this entire lecture and attached files?')) {
         await removeBlob(id + '_video');
         await removeBlob(id + '_pdf');
         lectures = lectures.filter(l => l.id !== id);
-        localStorage.setItem('hub_lectures_v2', JSON.stringify(lectures));
+        recentWatchIds = recentWatchIds.filter(x => x !== id);
+        delete playbackTimes[id];
+        localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
+        localStorage.setItem('hub_recently_watched', JSON.stringify(recentWatchIds));
+        localStorage.setItem('hub_playback_times', JSON.stringify(playbackTimes));
         renderLectures();
       }
     }
@@ -365,10 +412,16 @@
     async function renderLectures() {
       const list = document.getElementById('lectureList');
       list.innerHTML = '';
-      const items = lectures.filter(l => l.subject === currentSubject);
+
+      let items = [];
+      if (currentSubject === 'Recently Watched') {
+        items = recentWatchIds.map(id => lectures.find(l => l.id === id)).filter(Boolean);
+      } else {
+        items = lectures.filter(l => l.subject === currentSubject);
+      }
 
       if (items.length === 0) {
-        list.innerHTML = `<div class="empty-note">No lectures in <strong>${currentSubject}</strong>.<br>Tap <em>+ Add New Lecture</em> above.</div>`;
+        list.innerHTML = `<div class="empty-note">No lectures found in <strong>${currentSubject}</strong>.<br>Add one or start watching!</div>`;
         return;
       }
 
@@ -376,43 +429,56 @@
         const card = document.createElement('div');
         card.className = 'lecture-card';
 
+        const wrapperId = 'wrap_' + item.id;
+        const lockOverlayId = 'lock_' + item.id;
+        const savedProgress = playbackTimes[item.id] || null;
+
         let playerHtml = '';
         let badgeHtml = '';
 
         if (item.isDownloaded) {
           const blob = await fetchBlob(item.id + '_video');
           playerHtml = blob 
-            ? `<video controls playsinline preload="metadata" src="${URL.createObjectURL(blob)}"></video>` 
+            ? `<video id="vid_${item.id}" controls playsinline preload="metadata" src="${URL.createObjectURL(blob)}"></video>` 
             : `<div style="color:#ef4444;text-align:center;">Offline video missing.</div>`;
           badgeHtml = '<span class="badge badge-offline">Offline Saved</span>';
         } else if (item.type === 'youtube') {
-          playerHtml = `<iframe src="https://www.youtube.com/embed/${item.ytId}" allowfullscreen></iframe>`;
+          // If resumed timestamp exists, append start param &enablejsapi=1
+          const startSec = savedProgress ? savedProgress.time : 0;
+          playerHtml = `<iframe id="yt_${item.id}" src="https://www.youtube.com/embed/${item.ytId}?start=${startSec}&enablejsapi=1" allowfullscreen></iframe>`;
           badgeHtml = '<span class="badge badge-yt">YouTube</span>';
         } else if (item.type === 'file_cleared') {
-          playerHtml = `<div style="color:#94a3b8;text-align:center;padding:20px;">Storage cleared. Re-upload video file to play.</div>`;
+          playerHtml = `<div style="color:#94a3b8;text-align:center;padding:20px;">Storage cleared. Re-upload video to watch.</div>`;
           badgeHtml = '<span class="badge badge-online">Cleared</span>';
         } else {
-          playerHtml = `<video controls playsinline preload="metadata" src="${item.url}"></video>`;
+          playerHtml = `<video id="vid_${item.id}" controls playsinline preload="metadata" src="${item.url}"></video>`;
           badgeHtml = '<span class="badge badge-online">Online Stream</span>';
         }
 
         // Action Buttons
-        let storageActionBtn = '';
+        let downloadActionBtn = '';
         if (item.isDownloaded) {
-          storageActionBtn = `<button class="btn-pill btn-free-storage" onclick="freeStorageOnly('${item.id}')">Free Storage (Delete File Only)</button>`;
-        } else if (item.type === 'direct_stream' && item.url) {
-          storageActionBtn = `<button class="btn-pill btn-dl" id="dl_btn_${item.id}" onclick="downloadLecture('${item.id}', '${item.url}')">Download for Offline</button>`;
+          downloadActionBtn = `<button class="btn-pill btn-free-storage" onclick="freeStorageOnly('${item.id}')">🗑️ Free Storage</button>`;
+        } else if (item.type === 'youtube') {
+          downloadActionBtn = `<button class="btn-pill btn-dl" onclick="openYouTubeDownloader('${item.url}')">⬇️ Download Video</button>`;
+        } else if (item.url) {
+          downloadActionBtn = `<button class="btn-pill btn-dl" id="dl_btn_${item.id}" onclick="downloadLecture('${item.id}', '${item.url}')">⬇️ Download for Offline</button>`;
         }
 
-        const pdfBtn = item.hasPdf ? `<button class="btn-pill btn-pdf" onclick="openPdf('${item.id}')">PDF Notes</button>` : '';
+        const pdfBtn = item.hasPdf ? `<button class="btn-pill btn-pdf" onclick="openPdf('${item.id}')">📄 PDF Notes</button>` : '';
 
-        const wrapperId = 'wrap_' + item.id;
-        const lockOverlayId = 'lock_' + item.id;
+        // Progress calculation
+        let progressWidth = 0;
+        let progressNote = '';
+        if (savedProgress && savedProgress.total > 0) {
+          progressWidth = Math.min(100, (savedProgress.time / savedProgress.total) * 100);
+          progressNote = ` • Stopped at ${formatTime(savedProgress.time)}`;
+        }
 
         card.innerHTML = `
           <div class="video-toolbar">
-            <button class="tool-btn" onclick="rotateVideo('${wrapperId}')">🔄 Rotate</button>
-            <button class="tool-btn" onclick="toggleLock('${lockOverlayId}')">🔒 Lock Touch</button>
+            <button class="tool-btn fullscreen-btn" onclick="enterFullscreenLandscape('${wrapperId}', '${lockOverlayId}')">🔄 Rotate / Fullscreen</button>
+            <button class="tool-btn" onclick="toggleLock('${lockOverlayId}')">🔒 Lock Screen</button>
           </div>
 
           <div class="video-wrapper" id="${wrapperId}">
@@ -424,16 +490,33 @@
 
           <div class="lec-body">
             <h3>${item.title}</h3>
-            <p>Duration: ${item.duration} ${badgeHtml}</p>
+            <p>Subject: ${item.subject} • Duration: ${item.duration} ${progressNote} ${badgeHtml}</p>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: ${progressWidth}%;"></div>
+            </div>
             <div class="lec-actions">
               <button class="btn-pill btn-edit" onclick="editLecture('${item.id}')">✏️ Edit Title</button>
-              ${storageActionBtn}
+              ${downloadActionBtn}
               ${pdfBtn}
-              <button class="btn-pill btn-delete" onclick="deleteFullLecture('${item.id}')">Delete Lecture</button>
+              <button class="btn-pill btn-delete" onclick="deleteFullLecture('${item.id}')">Delete</button>
             </div>
           </div>
         `;
         list.appendChild(card);
+
+        // Bind auto-resume listeners for HTML5 native video
+        setTimeout(() => {
+          const v = document.getElementById('vid_' + item.id);
+          if (v) {
+            if (savedProgress && savedProgress.time > 0) {
+              v.currentTime = savedProgress.time;
+            }
+            v.addEventListener('play', () => recordWatch(item.id, v.currentTime, v.duration));
+            v.addEventListener('timeupdate', () => {
+              if (v.currentTime > 5) recordWatch(item.id, v.currentTime, v.duration);
+            });
+          }
+        }, 100);
       }
     }
 

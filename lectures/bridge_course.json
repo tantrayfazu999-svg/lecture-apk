@@ -1,0 +1,25 @@
+[
+  {
+    "id": "bridge_01",
+    "subject": "Bridge Course",
+    "title": "Bridge Course 01 : Understand NCERT Importance",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=uzY0ohmgZFM",
+    "ytId": "uzY0ohmgZFM",
+    "hasPdf": false
+  },
+  {
+    "id": "bridge_02",
+    "subject": "Bridge Course",
+    "title": "Bridge Course 02 : Understand Indian Economy",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=sJMT0dUSgDY",
+    "ytId": "sJMT0dUSgDY",
+    "hasPdf": false
+  }
+]
+

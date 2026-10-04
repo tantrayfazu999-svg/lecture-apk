@@ -184,26 +184,30 @@ window.addEventListener('DOMContentLoaded', () => {
 
 async function autoFetchCloud() {
   try {
-    const res = await fetch(CLOUD_DATABASE_URL + '?nocache=' + Date.now());
+    const res = await fetch(CLOUD_DATABASE_URL + '?nocache=' + Date.now(), {
+      cache: 'no-store'
+    });
+    if (!res.ok) return;
     const data = await res.json();
-    if (data.subjects && data.subjects.length > 0) {
+
+    if (data.subjects && Array.isArray(data.subjects) && data.subjects.length > 0) {
       subjects = data.subjects;
+      localStorage.setItem('hub_subjects_v3', JSON.stringify(subjects));
     }
-    if (data.lectures && data.lectures.length > 0) {
-      data.lectures.forEach(rem => {
-        if (!lectures.some(loc => loc.id === rem.id)) {
-          lectures.push(rem);
-        }
-      });
+
+    if (data.lectures && Array.isArray(data.lectures) && data.lectures.length > 0) {
+      // Overwrite local list with master GitHub cloud list to keep sequence & edits intact
+      lectures = data.lectures;
+      localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
     }
-    localStorage.setItem('hub_subjects_v3', JSON.stringify(subjects));
-    localStorage.setItem('hub_lectures_v3', JSON.stringify(lectures));
+
     renderTabs();
     renderLectures();
   } catch (err) {
-    console.log('Offline or using cached database.');
+    console.log('Offline or using cached database.', err);
   }
 }
+    
     
     function renderTabs() {
       const bar = document.getElementById('tabsBar');

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Lecture Hub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; padding-bottom: 60px; -webkit-tap-highlight-color: transparent; }
+    header { background: #1e293b; padding: 18px 20px; text-align: center; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 100; }
+    header h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
+
+    .tabs-bar { display: flex; align-items: center; background: #1e293b; padding: 10px; gap: 8px; overflow-x: auto; border-bottom: 1px solid #334155; }
+    .tab-btn { background: #334155; color: #94a3b8; border: none; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .tab-btn.active { background: #0284c7; color: white; }
+    .add-sec-btn { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+    .container { max-width: 650px; margin: 0 auto; padding: 16px; }
+    .btn-action { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-bottom: 18px; }
+
+    .card { background: #1e293b; border-radius: 12px; border: 1px solid #334155; padding: 16px; margin-bottom: 18px; }
+    .card h2 { font-size: 1.1rem; color: #38bdf8; margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 0.9rem; }
+    .btn-submit { background: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 700; cursor: pointer; }
+
+    .lecture-card { background: #1e293b; border-radius: 12px; border: 1px solid #334155; margin-bottom: 16px; overflow: hidden; }
+    .video-box { width: 100%; height: 210px; background: black; }
+    .video-box video, .video-box iframe { width: 100%; height: 100%; border: none; }
+    .lec-body { padding: 14px; }
+    .lec-body h3 { font-size: 1rem; margin-bottom: 6px; }
+    .lec-body p { font-size: 0.8rem; color: #94a3b8; margin-bottom: 12px; }
+    .lec-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-pill { padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; color: white; display: inline-block; }
+    .btn-pdf { background: #6366f1; }
+    .btn-delete { background: #ef4444; }
+    .empty-note { text-align: center; color: #64748b; padding: 40px 10px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Lecture Hub APK</h1>
+  </header>
+
+  <div class="tabs-bar" id="tabsBar"></div>
+
+  <div class="container">
+    <button class="btn-action" onclick="toggleForm()">+ Upload / Add Lecture</button>
+
+    <div class="card" id="formCard" style="display: none;">
+      <h2>Add Lecture</h2>
+      <div class="form-group">
+        <label>Subject</label>
+        <select id="selSubject"></select>
+      </div>
+      <div class="form-group">
+        <label>Lecture Title</label>
+        <input type="text" id="lecTitle" placeholder="e.g. Modern History Part 1" />
+      </div>
+      <div class="form-group">
+        <label>Duration</label>
+        <input type="text" id="lecDuration" placeholder="e.g. 1h 45m" />
+      </div>
+      <div class="form-group">
+        <label>Select Video File from Phone (Offline Playback)</label>
+        <input type="file" id="videoFile" accept="video/*" />
+      </div>
+      <div class="form-group">
+        <label>OR Online Video Link (MP4 or YouTube URL)</label>
+        <input type="text" id="videoUrl" placeholder="https://..." />
+      </div>
+      <div class="form-group">
+        <label>PDF Notes Link</label>
+        <input type="text" id="pdfUrl" placeholder="https://drive.google.com/..." />
+      </div>
+      <button class="btn-submit" id="btnSave" onclick="saveLecture()">Save to App</button>
+    </div>
+
+    <div id="lectureList"></div>
+  </div>
+
+  <script>
+    // Database Setup (IndexedDB for raw video files)
+    const DB_NAME = 'OfflineLectureDB';
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = (e) => e.target.result.createObjectStore('videos');
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function storeVideo(id, blob) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('videos', 'readwrite');
+        tx.objectStore('videos').put(blob, id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function fetchVideo(id) {
+      try {
+        const db = await openDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction('videos', 'readonly');
+          const req = tx.objectStore('videos').get(id);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+        });
+      } catch (e) { return null; }
+    }
+
+    async function removeVideo(id) {
+      try {
+        const db = await openDB();
+        const tx = db.transaction('videos', 'readwrite');
+        tx.objectStore('videos').delete(id);
+      } catch (e) {}
+    }
+
+    // Portal State
+    let subjects = JSON.parse(localStorage.getItem('app_subjects')) || ['History', 'Economics', 'Geography', 'Polity'];
+    let lectures = JSON.parse(localStorage.getItem('app_lectures')) || [];
+    let currentSubject = subjects[0];
+
+    function renderTabs() {
+      const bar = document.getElementById('tabsBar');
+      bar.innerHTML = '';
+      subjects.forEach(s => {
+        const b = document.createElement('button');
+        b.className = 'tab-btn ' + (s === currentSubject ? 'active' : '');
+        b.innerText = s;
+        b.onclick = () => { currentSubject = s; renderTabs(); renderLectures(); };
+        bar.appendChild(b);
+      });
+      const addB = document.createElement('button');
+      addB.className = 'add-sec-btn';
+      addB.innerText = '+ New Subject';
+      addB.onclick = addSubject;
+      bar.appendChild(addB);
+
+      const sel = document.getElementById('selSubject');
+      sel.innerHTML = '';
+      subjects.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.innerText = s;
+        sel.appendChild(opt);
+      });
+      sel.value = currentSubject;
+    }
+
+    function addSubject() {
+      const name = prompt('Enter new subject name:');
+      if (name && !subjects.includes(name.trim())) {
+        subjects.push(name.trim());
+        localStorage.setItem('app_subjects', JSON.stringify(subjects));
+        currentSubject = name.trim();
+        renderTabs();
+        renderLectures();
+      }
+    }
+
+    function toggleForm() {
+      const c = document.getElementById('formCard');
+      c.style.display = c.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function extractYT(url) {
+      const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    async function saveLecture() {
+      const sub = document.getElementById('selSubject').value;
+      const title = document.getElementById('lecTitle').value.trim();
+      const dur = document.getElementById('lecDuration').value.trim() || '1h 30m';
+      const file = document.getElementById('videoFile').files[0];
+      const url = document.getElementById('videoUrl').value.trim();
+      const pdf = document.getElementById('pdfUrl').value.trim() || '#';
+
+      if (!title) { alert('Please enter a title'); return; }
+
+      const id = 'lec_' + Date.now();
+      const btn = document.getElementById('btnSave');
+      btn.innerText = 'Saving...';
+      btn.disabled = true;
+
+      if (file) {
+        await storeVideo(id, file);
+        lectures.push({ id, subject: sub, title, duration: dur, type: 'offline', pdf });
+      } else if (url) {
+        const ytId = extractYT(url);
+        lectures.push({ id, subject: sub, title, duration: dur, type: ytId ? 'youtube' : 'url', src: ytId || url, pdf });
+      } else {
+        alert('Please choose a video file or paste a video link.');
+        btn.innerText = 'Save to App';
+        btn.disabled = false;
+        return;
+      }
+
+      localStorage.setItem('app_lectures', JSON.stringify(lectures));
+      document.getElementById('lecTitle').value = '';
+      document.getElementById('videoFile').value = '';
+      document.getElementById('videoUrl').value = '';
+      document.getElementById('pdfUrl').value = '';
+      toggleForm();
+      btn.innerText = 'Save to App';
+      btn.disabled = false;
+
+      currentSubject = sub;
+      renderTabs();
+      renderLectures();
+    }
+
+    async function deleteLec(id) {
+      if (confirm('Delete this lecture?')) {
+        await removeVideo(id);
+        lectures = lectures.filter(l => l.id !== id);
+        localStorage.setItem('app_lectures', JSON.stringify(lectures));
+        renderLectures();
+      }
+    }
+
+    async function renderLectures() {
+      const list = document.getElementById('lectureList');
+      list.innerHTML = '';
+      const items = lectures.filter(l => l.subject === currentSubject);
+
+      if (items.length === 0) {
+        list.innerHTML = `<div class="empty-note">No lectures added to <strong>${currentSubject}</strong> yet.<br>Tap <em>+ Upload / Add Lecture</em> above.</div>`;
+        return;
+      }
+
+      for (const item of items) {
+        const card = document.createElement('div');
+        card.className = 'lecture-card';
+
+        let player = '';
+        if (item.type === 'offline') {
+          const blob = await fetchVideo(item.id);
+          player = blob ? `<video controls playsinline src="${URL.createObjectURL(blob)}"></video>` : '<div style="color:white;padding:20px;text-align:center;">Video not found</div>';
+        } else if (item.type === 'youtube') {
+          player = `<iframe src="https://www.youtube.com/embed/${item.src}" allowfullscreen></iframe>`;
+        } else {
+          player = `<video controls playsinline src="${item.src}"></video>`;
+        }
+
+        card.innerHTML = `
+          <div class="video-box">${player}</div>
+          <div class="lec-body">
+            <h3>${item.title}</h3>
+            <p>Duration: ${item.duration} ${item.type === 'offline' ? '• <strong style="color:#10b981;">Offline Saved</strong>' : ''}</p>
+            <div class="lec-actions">
+              <a href="${item.pdf}" class="btn-pill btn-pdf" target="_blank">PDF Notes</a>
+              <button class="btn-pill btn-delete" onclick="deleteLec('${item.id}')">Remove</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      }
+    }
+
+    renderTabs();
+    renderLectures();
+  </script>
+</body>
+</html>

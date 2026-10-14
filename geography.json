@@ -1,0 +1,13 @@
+[
+  {
+    "id": "geo_01",
+    "subject": "Geography",
+    "title": "Geography 01 : Introduction to Physical Geography",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=PASTE_VIDEO_ID_HERE",
+    "ytId": "PASTE_VIDEO_ID_HERE",
+    "hasPdf": false
+  }
+]

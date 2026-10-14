@@ -1,0 +1,13 @@
+[
+  {
+    "id": "sec_01",
+    "subject": "Internal Security",
+    "title": "Internal Security 01 : Challenges to Internal Security",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=PASTE_VIDEO_ID_HERE",
+    "ytId": "PASTE_VIDEO_ID_HERE",
+    "hasPdf": false
+  }
+]

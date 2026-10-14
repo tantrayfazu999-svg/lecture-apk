@@ -1,0 +1,13 @@
+[
+  {
+    "id": "start_01",
+    "subject": "Starter Kit",
+    "title": "Starter Kit 01 : UPSC Syllabus & Resource Orientation",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=PASTE_VIDEO_ID_HERE",
+    "ytId": "PASTE_VIDEO_ID_HERE",
+    "hasPdf": false
+  }
+]

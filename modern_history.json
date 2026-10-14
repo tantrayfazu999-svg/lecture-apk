@@ -1,0 +1,13 @@
+[
+  {
+    "id": "mod_01",
+    "subject": "Modern History",
+    "title": "Modern History 01 : Advent of Europeans",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=PASTE_VIDEO_ID_HERE",
+    "ytId": "PASTE_VIDEO_ID_HERE",
+    "hasPdf": false
+  }
+]

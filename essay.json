@@ -1,0 +1,13 @@
+[
+  {
+    "id": "ess_01",
+    "subject": "Essay",
+    "title": "Essay 01 : Approach and Framework for Essay Writing",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=PASTE_VIDEO_ID_HERE",
+    "ytId": "PASTE_VIDEO_ID_HERE",
+    "hasPdf": false
+  }
+]

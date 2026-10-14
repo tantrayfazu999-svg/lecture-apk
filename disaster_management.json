@@ -1,0 +1,13 @@
+[
+  {
+    "id": "dm_01",
+    "subject": "Disaster Management",
+    "title": "Disaster Management 01 : Introduction & Framework",
+    "duration": "1h 30m",
+    "type": "youtube",
+    "isDownloaded": false,
+    "url": "https://www.youtube.com/watch?v=PASTE_VIDEO_ID_HERE",
+    "ytId": "PASTE_VIDEO_ID_HERE",
+    "hasPdf": false
+  }
+]
